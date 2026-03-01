@@ -1,4 +1,4 @@
 # By Abdullah As-Sadeed
 
-__pycache__
-.venv
+__pycache__/
+.venv/
