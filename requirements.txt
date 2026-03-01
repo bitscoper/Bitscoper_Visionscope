@@ -1,0 +1,8 @@
+# By Abdullah As-Sadeed
+
+lapx
+opencv-python
+Pillow
+py-cpuinfo
+streamlit
+ultralytics
