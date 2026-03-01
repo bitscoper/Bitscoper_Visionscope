@@ -122,7 +122,7 @@ if __name__ == "__main__":
             st.error("Failed to select aspect ratio!")
         return width, height
 
-    def display_result_frames(streamlit_frame, source_frame, is_use_full_width):
+    def display_result_frames(streamlit_frame, source_frame, width):
         if tracker == "No":
             model_output = model(source_frame, conf=confidence)
         elif (tracker == "bytetrack.yaml") or (tracker == "botsort.yaml"):
@@ -137,7 +137,7 @@ if __name__ == "__main__":
             plotted_frame,
             caption="Result Video",
             channels="BGR",
-            use_column_width=is_use_full_width,
+            width=width,
         )
 
     def create_plus_account_token_field():
@@ -263,13 +263,11 @@ if __name__ == "__main__":
                     st.image(
                         default_image_path,
                         caption="Default Image",
-                        use_column_width=True,
+                        width="stretch",
                     )
                 else:
                     uploaded_image = PIL.Image.open(source_image)
-                    st.image(
-                        source_image, caption="Uploaded Image", use_column_width=True
-                    )
+                    st.image(source_image, caption="Uploaded Image", width="stretch")
             except Exception as exception:
                 st.error(f"Error occurred while opening the image: {exception}")
         with column_2:
@@ -279,7 +277,7 @@ if __name__ == "__main__":
                 st.image(
                     default_result_image_path,
                     caption="Result Image",
-                    use_column_width=True,
+                    width="stretch",
                 )
             else:
                 if restricted_model_weight and settings.APPLY_PLUS_ACCOUNT:
@@ -303,7 +301,7 @@ if __name__ == "__main__":
                         st.image(
                             plotted_resource,
                             caption="Result Image",
-                            use_column_width=True,
+                            width="stretch",
                         )
                         st.snow()
                         try:
@@ -337,7 +335,7 @@ if __name__ == "__main__":
                                 success, image = video_capture.read()
                                 if success:
                                     display_result_frames(
-                                        st_frame, image, is_use_full_width=True
+                                        st_frame, image, width="stretch"
                                     )
                                 else:
                                     video_capture.release()
@@ -370,9 +368,7 @@ if __name__ == "__main__":
                     while video_capture.isOpened():
                         success, image = video_capture.read()
                         if success:
-                            display_result_frames(
-                                st_frame, image, is_use_full_width=False
-                            )
+                            display_result_frames(st_frame, image, width=None)
                         else:
                             video_capture.release()
                             break
@@ -394,9 +390,7 @@ if __name__ == "__main__":
                     while video_capture.isOpened():
                         success, image = video_capture.read()
                         if success:
-                            display_result_frames(
-                                st_frame, image, is_use_full_width=False
-                            )
+                            display_result_frames(st_frame, image, width=None)
                         else:
                             video_capture.release()
                             break
