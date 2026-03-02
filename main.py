@@ -16,7 +16,7 @@ if __name__ == "__main__":
     ICON = "🔬"
 
     OBJECT_DETECTION_MODEL = "Object Detection"
-    OBB_OBJECT_DETECTION_MODEL = "Oriented Bounding Boxes Object Detection"
+    OBB_OBJECT_DETECTION_MODEL = "Oriented Bounding Boxes (OBB) Object Detection"
     OBJECT_SEGMENTATION_MODEL = "Object Segmentation"
     POSE_DETECTION_MODEL = "Pose Detection"
     MODELS = [
