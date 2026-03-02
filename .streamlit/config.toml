@@ -4,4 +4,5 @@
 developmentMode = false
 
 [server]
+headless = true
 port = 1701
