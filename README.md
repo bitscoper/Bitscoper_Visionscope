@@ -2,7 +2,7 @@
 
 # Bitscoper Visionoscope
 
-Ultralytics YOLOv8 on Streamlit
+Object Detection, Object Segmentation, and Pose Detection using Ultralytics YOLO26 on Streamlit
 
 <br />
 
