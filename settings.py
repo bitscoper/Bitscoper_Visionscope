@@ -12,10 +12,8 @@ if root_path not in sys.path:
 
 ROOT = root_path.relative_to(Path.cwd())
 
-MODEL_DIRECTORY = ROOT / "../YOLO-Weights"
+MODEL_DIRECTORY = ROOT / "Ultralytics_YOLO_Weights"
 
 IMAGES_DIRECTORY = ROOT / "demo_files/images"
 DEFAULT_IMAGE = IMAGES_DIRECTORY / "default.jpg"
 DEFAULT_RESULT_IMAGE = IMAGES_DIRECTORY / "default_result.jpg"
-
-APPLY_PLUS_ACCOUNT = True
