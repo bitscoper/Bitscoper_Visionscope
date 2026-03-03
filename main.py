@@ -146,13 +146,21 @@ if __name__ == "__main__":
         else:
             st.error("Failed to determine tracker!")
 
-        plotted_frame = model_output[0].plot()
+        plotted_frame = model_output[0].plot(
+            boxes=True,
+            conf=True,
+            kpt_line=True,
+            labels=True,
+            masks=True,
+            probs=True,
+        )
 
         streamlit_frame.image(
-            plotted_frame,
+            image=plotted_frame,
             caption="Result Video",
             channels="BGR",
             width=width,
+            output_format="auto",
         )
 
     st.set_page_config(
@@ -241,10 +249,10 @@ if __name__ == "__main__":
 
     source_radio = st.sidebar.radio("Select Source", SOURCES)
 
-    source_image = None
+    source_image_file = None
 
     if source_radio == IMAGE_FILE_SOURCE:
-        source_image = st.sidebar.file_uploader(
+        source_image_file = st.sidebar.file_uploader(
             "Select an Image File",
             type=IMAGE_FILE_EXTENSIONS,
             accept_multiple_files=False,
@@ -254,35 +262,21 @@ if __name__ == "__main__":
 
         with column_1:
             try:
-                if source_image is None:
-                    default_image_path = str(settings.DEFAULT_IMAGE)
-                    default_image = PIL.Image.open(default_image_path)  # FIXME: Check
-                    st.image(
-                        default_image_path,
-                        caption="Default Image",
-                        width="stretch",
-                    )
+                if source_image_file is not None:
+                    uploaded_image = PIL.Image.open(source_image_file)
 
-                else:
-                    uploaded_image = PIL.Image.open(source_image)
-                    st.image(source_image, caption="Uploaded Image", width="stretch")
+                    st.image(
+                        image=source_image_file,
+                        caption="Uploaded Image",
+                        width="stretch",
+                        output_format="auto",
+                    )
 
             except Exception as exception:
                 st.error(f"Error occurred while opening the image: {exception}")
 
         with column_2:
-            if source_image is None:
-                default_result_image_path = str(settings.DEFAULT_RESULT_IMAGE)
-                default_result_image = PIL.Image.open(
-                    default_result_image_path
-                )  # FIXME: Check
-                st.image(
-                    default_result_image_path,
-                    caption="Result Image",
-                    width="stretch",
-                )
-
-            else:
+            if source_image_file is not None:
                 if st.sidebar.button("Run"):
                     if tracker == "No":
                         resource = model(uploaded_image, conf=confidence)
@@ -296,11 +290,20 @@ if __name__ == "__main__":
                         )
 
                     boxes = resource[0].boxes
-                    plotted_resource = resource[0].plot()[:, :, ::-1]
+                    plotted_resource = resource[0].plot(
+                        boxes=True,
+                        conf=True,
+                        kpt_line=True,
+                        labels=True,
+                        masks=True,
+                        probs=True,
+                    )[:, :, ::-1]
+
                     st.image(
-                        plotted_resource,
+                        image=plotted_resource,
                         caption="Result Image",
                         width="stretch",
+                        output_format="auto",
                     )
 
                     st.snow()
@@ -315,21 +318,21 @@ if __name__ == "__main__":
                         st.write(exception)
 
     elif source_radio == VIDEO_FILE_SOURCE:
-        source_video = st.sidebar.file_uploader(
+        source_video_file = st.sidebar.file_uploader(
             "Select a Video File",
             type=VIDEO_FILE_EXTENSIONS,
             accept_multiple_files=False,
         )
 
-        if source_video is not None:
+        if source_video_file is not None:
             temporary_file = tempfile.NamedTemporaryFile(delete=False)
-            temporary_file.write(source_video.read())
+            temporary_file.write(source_video_file.read())
             video_capture = cv2.VideoCapture(temporary_file.name)
 
             column_1, column_2 = st.columns(2)
 
             with column_1:
-                st.video(source_video)
+                st.video(source_video_file)
 
             with column_2:
                 if st.sidebar.button("Run"):
@@ -383,7 +386,7 @@ if __name__ == "__main__":
                         break
 
             except Exception as exception:
-                st.error(f"Error loading video: {exception}")
+                st.error(f"Error loading webcam stream: {exception}")
 
     elif source_radio == RTSP_SOURCE:
         source_rtsp = st.sidebar.text_input(
