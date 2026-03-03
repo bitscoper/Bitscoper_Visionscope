@@ -188,8 +188,9 @@ if __name__ == "__main__":
         float(
             st.sidebar.slider(
                 label="Set Model Confidence",
-                min_value=settings.MINIMUM_CONFIDENCE,
+                min_value=1,
                 max_value=100,
+                step=1,
                 value=settings.DEFAULT_CONFIDENCE,
             )
         )
@@ -381,9 +382,9 @@ if __name__ == "__main__":
         source_width, source_height = select_video_size()
 
         if st.sidebar.button(label="Run"):
-            stop_button = st.sidebar.button(label="Stop", key="stop")
-
             try:
+                stop_button = st.sidebar.button(label="Stop", key="stop")
+
                 video_capture = cv2.VideoCapture(source_webcam)
                 video_capture.set(propId=3, value=source_width)
                 video_capture.set(propId=4, value=source_height)
@@ -419,9 +420,9 @@ if __name__ == "__main__":
         )
 
         if st.sidebar.button(label="Run"):
-            stop_button = st.sidebar.button("Stop", key="stop")
-
             try:
+                stop_button = st.sidebar.button("Stop", key="stop")
+
                 video_capture = cv2.VideoCapture(source_rtsp)
 
                 st_frame = st.empty()
