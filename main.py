@@ -69,7 +69,7 @@ if __name__ == "__main__":
                 continue
 
             else:
-                st.error("Failed to determine aspect ratio!")
+                st.error(body="Failed to determine aspect ratio!")
 
             for height in VIDEO_HEIGHTS:
                 width = int(height * aspect_ratio)
@@ -81,7 +81,7 @@ if __name__ == "__main__":
         maximum_width = max(combined_widths)
 
         aspect_ratio = st.sidebar.radio(
-            "Select Aspect Ratio", ASPECT_RATIOS, horizontal=True
+            label="Select Aspect Ratio", options=ASPECT_RATIOS, horizontal=True
         )
 
         if (aspect_ratio == ASPECT_RATIO_16_9) or (aspect_ratio == ASPECT_RATIO_4_3):
@@ -92,7 +92,7 @@ if __name__ == "__main__":
                 aspect_ratio = 4 / 3
 
             else:
-                st.error("Failed to determine aspect ratio!")
+                st.error(body="Failed to determine aspect ratio!")
 
             widths = []
             resolutions = []
@@ -102,14 +102,16 @@ if __name__ == "__main__":
                 widths.append(width)
                 resolutions.append(f"{height}p: {width} x {height}")
 
-            resolution = st.sidebar.selectbox("Select Resolution", resolutions)
+            resolution = st.sidebar.selectbox(
+                label="Select Resolution", options=resolutions
+            )
 
             width, height = map(int, resolution.split(":")[1].strip().split("x"))
 
         elif aspect_ratio == ASPECT_RATIO_CUSTOM:
             width = int(
                 st.sidebar.number_input(
-                    "Set Video Width",
+                    label="Set Video Width",
                     format="%d",
                     min_value=minimum_width,
                     max_value=maximum_width,
@@ -120,7 +122,7 @@ if __name__ == "__main__":
 
             height = int(
                 st.sidebar.number_input(
-                    "Set Video Height",
+                    label="Set Video Height",
                     format="%d",
                     min_value=minimum_height,
                     max_value=maximum_height,
@@ -130,21 +132,25 @@ if __name__ == "__main__":
             )
 
         else:
-            st.error("Failed to select aspect ratio!")
+            st.error(body="Failed to select aspect ratio!")
 
         return width, height
 
     def display_result_frames(streamlit_frame, source_frame, width):
         if tracker == "No":
-            model_output = model(source_frame, conf=confidence)
+            model_output = model(source=source_frame, conf=confidence, verbose=False)
 
         elif (tracker == "bytetrack.yaml") or (tracker == "botsort.yaml"):
             model_output = model.track(
-                source_frame, conf=confidence, persist=True, tracker=tracker
+                source=source_frame,
+                conf=confidence,
+                persist=True,
+                tracker=tracker,
+                verbose=False,
             )
 
         else:
-            st.error("Failed to determine tracker!")
+            st.error(body="Failed to determine tracker!")
 
         plotted_frame = model_output[0].plot(
             boxes=True,
@@ -170,18 +176,18 @@ if __name__ == "__main__":
         initial_sidebar_state="expanded",
     )
 
-    st.title(TITLE)
+    st.title(body=TITLE, anchor=False)
 
-    st.sidebar.header("Model Settings")
+    st.sidebar.header(body="Model Settings")
 
-    model_type = st.sidebar.radio("Select Model", MODELS)
+    model_type = st.sidebar.radio(label="Select Model", options=MODELS)
 
-    model_weight = st.sidebar.selectbox("Select Weight", WEIGHTS)
+    model_weight = st.sidebar.selectbox(label="Select Weight", options=WEIGHTS)
 
     confidence = (
         float(
             st.sidebar.slider(
-                "Set Model Confidence",
+                label="Set Model Confidence",
                 min_value=settings.MINIMUM_CONFIDENCE,
                 max_value=100,
                 value=settings.DEFAULT_CONFIDENCE,
@@ -191,7 +197,7 @@ if __name__ == "__main__":
     )
 
     tracker = st.sidebar.selectbox(
-        "Select Tracker", ["bytetrack.yaml", "botsort.yaml", "No"]
+        label="Select Tracker", options=["bytetrack.yaml", "botsort.yaml", "No"]
     )
 
     if model_type == OBJECT_DETECTION_MODEL:
@@ -211,7 +217,7 @@ if __name__ == "__main__":
         task = "pose"
 
     else:
-        st.error("Failed to select model!")
+        st.error(body="Failed to select model!")
 
     if model_weight == NANO_WEIGHT:
         model_weight_suffix = "n"
@@ -229,7 +235,7 @@ if __name__ == "__main__":
         model_weight_suffix = "x"
 
     else:
-        st.error("Failed to select weight!")
+        st.error(body="Failed to select weight!")
 
     model_path = (
         str(settings.MODEL_DIRECTORY)
@@ -240,20 +246,20 @@ if __name__ == "__main__":
     )
 
     try:
-        model = YOLO(model_path, task=task, verbose=False)
+        model = YOLO(model=model_path, task=task, verbose=False)
 
     except Exception as exception:
-        st.error(f"Failed to load model!\nCheck the path: {model_path}: {exception}")
+        st.error(
+            body=f"Failed to load model!\nCheck the path: {model_path}: {exception}"
+        )
 
-    st.sidebar.header("Input Settings")
+    st.sidebar.header(body="Input Settings")
 
-    source_radio = st.sidebar.radio("Select Source", SOURCES)
-
-    source_image_file = None
+    source_radio = st.sidebar.radio(label="Select Source", options=SOURCES)
 
     if source_radio == IMAGE_FILE_SOURCE:
         source_image_file = st.sidebar.file_uploader(
-            "Select an Image File",
+            label="Select an Image File",
             type=IMAGE_FILE_EXTENSIONS,
             accept_multiple_files=False,
         )
@@ -263,7 +269,7 @@ if __name__ == "__main__":
         with column_1:
             try:
                 if source_image_file is not None:
-                    uploaded_image = PIL.Image.open(source_image_file)
+                    uploaded_image = PIL.Image.open(fp=source_image_file)
 
                     st.image(
                         image=source_image_file,
@@ -273,20 +279,23 @@ if __name__ == "__main__":
                     )
 
             except Exception as exception:
-                st.error(f"Error occurred while opening the image: {exception}")
+                st.error(body=f"Error occurred while opening the image: {exception}")
 
         with column_2:
             if source_image_file is not None:
-                if st.sidebar.button("Run"):
+                if st.sidebar.button(label="Run"):
                     if tracker == "No":
-                        resource = model(uploaded_image, conf=confidence)
+                        resource = model(
+                            model=uploaded_image, conf=confidence, verbose=False
+                        )
 
                     else:
                         resource = model.track(
-                            uploaded_image,
+                            source=uploaded_image,
                             conf=confidence,
                             persist=True,
                             tracker=tracker,
+                            verbose=False,
                         )
 
                     boxes = resource[0].boxes
@@ -309,17 +318,16 @@ if __name__ == "__main__":
                     st.snow()
 
                     try:
-                        with st.expander("Results"):
+                        with st.expander(label="Results"):
                             for box in boxes:
                                 st.write(box.data)
 
                     except Exception as exception:
-                        st.write("No image is uploaded yet!")
-                        st.write(exception)
+                        st.error(body=f"No image is uploaded yet: {exception}")
 
     elif source_radio == VIDEO_FILE_SOURCE:
         source_video_file = st.sidebar.file_uploader(
-            "Select a Video File",
+            label="Select a Video File",
             type=VIDEO_FILE_EXTENSIONS,
             accept_multiple_files=False,
         )
@@ -332,10 +340,10 @@ if __name__ == "__main__":
             column_1, column_2 = st.columns(2)
 
             with column_1:
-                st.video(source_video_file)
+                st.video(data=source_video_file)
 
             with column_2:
-                if st.sidebar.button("Run"):
+                if st.sidebar.button(label="Run"):
                     try:
                         st_frame = st.empty()
 
@@ -343,14 +351,18 @@ if __name__ == "__main__":
                             success, image = video_capture.read()
 
                             if success:
-                                display_result_frames(st_frame, image, width="stretch")
+                                display_result_frames(
+                                    streamlit_frame=st_frame,
+                                    source_frame=image,
+                                    width="stretch",
+                                )
 
                             else:
                                 video_capture.release()
                                 break
 
                     except Exception as exception:
-                        st.error(f"Error loading video: {exception}")
+                        st.error(label=f"Error loading video: {exception}")
 
                     finally:
                         temporary_file.close()
@@ -358,7 +370,7 @@ if __name__ == "__main__":
     elif source_radio == WEBCAM_SOURCE:
         source_webcam = int(
             st.sidebar.number_input(
-                "Set Webcam Serial",
+                label="Set Webcam Serial",
                 format="%d",
                 min_value=0,
                 step=1,
@@ -368,51 +380,77 @@ if __name__ == "__main__":
 
         source_width, source_height = select_video_size()
 
-        if st.sidebar.button("Run"):
+        if st.sidebar.button(label="Run"):
+            stop_button = st.sidebar.button(label="Stop", key="stop")
+
             try:
                 video_capture = cv2.VideoCapture(source_webcam)
-                video_capture.set(3, source_width)
-                video_capture.set(4, source_height)
+                video_capture.set(propId=3, value=source_width)
+                video_capture.set(propId=4, value=source_height)
+
                 st_frame = st.empty()
 
                 while video_capture.isOpened():
                     success, image = video_capture.read()
 
+                    if stop_button:
+                        video_capture.release()
+                        break
+
                     if success:
-                        display_result_frames(st_frame, image, width="content")
+                        display_result_frames(
+                            streamlit_frame=st_frame,
+                            source_frame=image,
+                            width="content",
+                        )
 
                     else:
                         video_capture.release()
                         break
 
+                video_capture.release()
+
             except Exception as exception:
-                st.error(f"Error loading webcam stream: {exception}")
+                st.error(body=f"Error loading webcam stream: {exception}")
 
     elif source_radio == RTSP_SOURCE:
         source_rtsp = st.sidebar.text_input(
-            "Set RTSP Stream URL", placeholder="Write a RTSP Stream URL"
+            label="Set RTSP Stream URL", placeholder="Write a RTSP Stream URL"
         )
 
-        if st.sidebar.button("Run"):
+        if st.sidebar.button(label="Run"):
+            stop_button = st.sidebar.button("Stop", key="stop")
+
             try:
                 video_capture = cv2.VideoCapture(source_rtsp)
+
                 st_frame = st.empty()
 
                 while video_capture.isOpened():
                     success, image = video_capture.read()
 
+                    if stop_button:
+                        video_capture.release()
+                        break
+
                     if success:
-                        display_result_frames(st_frame, image, width="content")
+                        display_result_frames(
+                            streamlit_frame=st_frame,
+                            source_frame=image,
+                            width="content",
+                        )
 
                     else:
                         video_capture.release()
                         break
 
+                video_capture.release()
+
             except Exception as exception:
-                st.error(f"Error loading RTSP stream: {exception}")
+                st.error(body=f"Error loading RTSP stream: {exception}")
 
     else:
-        st.error("Failed to select source!")
+        st.error(body="Failed to select source!")
 
 else:
     print("Run as\nstreamlit run main.py")
