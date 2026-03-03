@@ -31,7 +31,7 @@ if __name__ == "__main__":
     MEDIUM_WEIGHT = "Medium"
     LARGE_WEIGHT = "Large"
     EXTRA_LARGE_WEIGHT = "Extra Large"
-    WEIGHTS = [
+    MODEL_WEIGHTS = [
         NANO_WEIGHT,
         SMALL_WEIGHT,
         MEDIUM_WEIGHT,
@@ -155,10 +155,13 @@ if __name__ == "__main__":
         plotted_frame = model_output[0].plot(
             boxes=True,
             conf=True,
+            font_size=None, # Scaled to Image Size
             kpt_line=True,
             labels=True,
+            line_width=None, # Scaled to Image Size
             masks=True,
             probs=True,
+            txt_color=plot_text_color_bgr
         )
 
         streamlit_frame.image(
@@ -176,18 +179,18 @@ if __name__ == "__main__":
         initial_sidebar_state="expanded",
     )
 
-    st.title(body=TITLE, anchor=False)
+    st.title(body=TITLE, anchor=False, text_alignment="center")
 
     st.sidebar.header(body="Model Settings")
 
     model_type = st.sidebar.radio(label="Select Model", options=MODELS)
 
-    model_weight = st.sidebar.selectbox(label="Select Weight", options=WEIGHTS)
+    model_weight = st.sidebar.selectbox(label="Select Model Weight", options=MODEL_WEIGHTS)
 
     confidence = (
         float(
             st.sidebar.slider(
-                label="Set Model Confidence",
+                label="Set Confidence",
                 min_value=1,
                 max_value=100,
                 step=1,
@@ -200,6 +203,12 @@ if __name__ == "__main__":
     tracker = st.sidebar.selectbox(
         label="Select Tracker", options=["bytetrack.yaml", "botsort.yaml", "No"]
     )
+
+    plot_text_color_hex = st.sidebar.color_picker(label="Pick Plot-Text Color")
+    plot_text_color_red = int(plot_text_color_hex[1:3], 16)
+    plot_text_color_green = int(plot_text_color_hex[3:5], 16)
+    plot_text_color_blue = int(plot_text_color_hex[5:7], 16)
+    plot_text_color_bgr = (plot_text_color_blue, plot_text_color_green, plot_text_color_red)
 
     if model_type == OBJECT_DETECTION_MODEL:
         model_suffix = ""
@@ -256,7 +265,7 @@ if __name__ == "__main__":
 
     st.sidebar.header(body="Input Settings")
 
-    source_radio = st.sidebar.radio(label="Select Source", options=SOURCES)
+    source_radio = st.sidebar.radio(label="Select Source", options=SOURCES, horizontal=True)
 
     if source_radio == IMAGE_FILE_SOURCE:
         source_image_file = st.sidebar.file_uploader(
@@ -303,10 +312,13 @@ if __name__ == "__main__":
                     plotted_resource = resource[0].plot(
                         boxes=True,
                         conf=True,
+                        font_size=None, # Scaled to Image Size
                         kpt_line=True,
                         labels=True,
+                        line_width=None, # Scaled to Image Size
                         masks=True,
                         probs=True,
+                        txt_color=plot_text_color_bgr
                     )[:, :, ::-1]
 
                     st.image(
