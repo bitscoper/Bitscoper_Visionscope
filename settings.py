@@ -17,10 +17,6 @@ ROOT = root_path.relative_to(Path.cwd())
 
 MODEL_DIRECTORY = ROOT / "Ultralytics_YOLO_Weights"
 
-IMAGES_DIRECTORY = ROOT / "demo_files/images"
-DEFAULT_IMAGE = IMAGES_DIRECTORY / "default.jpg"
-DEFAULT_RESULT_IMAGE = IMAGES_DIRECTORY / "default_result.jpg"
-
 DEFAULT_WEBCAM_NUMBER = 0
 DEFAULT_VIDEO_WIDTH = 640
 DEFAULT_VIDEO_HEIGHT = 480
