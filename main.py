@@ -3,9 +3,10 @@
 
 # By Abdullah As-Sadeed
 
+from pathlib import Path
+from PIL import Image
 from ultralytics import YOLO
 import cv2
-import PIL
 import streamlit as st
 import tempfile
 
@@ -42,7 +43,7 @@ if __name__ == "__main__":
     MODEL_SUFFIXES = {
         OBJECT_DETECTION_MODEL: "",
         OBB_OBJECT_DETECTION_MODEL: "-obb",
-        OBJECT_SEGMENTATION_MODEL: "-segment",
+        OBJECT_SEGMENTATION_MODEL: "-seg",
         POSE_DETECTION_MODEL: "-pose",
     }
 
@@ -173,7 +174,7 @@ if __name__ == "__main__":
         if tracker == "No":
             model_output = model(source=source_frame, conf=confidence, verbose=False)
 
-        elif (tracker == "bytetrack.yaml") or (tracker == "botsort.yaml"):
+        elif tracker in ("bytetrack.yaml", "botsort.yaml"):
             model_output = model.track(
                 source=source_frame,
                 conf=confidence,
@@ -278,11 +279,8 @@ if __name__ == "__main__":
     )
 
     model_path = (
-        str(settings.MODEL_DIRECTORY)
-        + "/yolo26"
-        + MODEL_WEIGHT_SUFFIXES.get(model_weight)
-        + MODEL_SUFFIXES.get(model_type)
-        + ".pt"
+        Path(settings.MODEL_DIRECTORY) / f"yolo26{MODEL_WEIGHT_SUFFIXES[model_weight]}"
+        f"{MODEL_SUFFIXES[model_type]}.pt"
     )
 
     try:
@@ -316,14 +314,12 @@ if __name__ == "__main__":
             type=IMAGE_FILE_EXTENSIONS,
         )
 
-        column_1, column_2 = st.columns(
-            border=False, spec=2, vertical_alignment="center"
-        )
+        column_1, column_2 = st.columns(border=False, spec=2, vertical_alignment="top")
 
         with column_1:
             try:
                 if source_image_file is not None:
-                    uploaded_image = PIL.Image.open(fp=source_image_file)
+                    uploaded_image = Image.open(fp=source_image_file)
 
                     st.image(
                         caption="Source Image",
@@ -337,55 +333,49 @@ if __name__ == "__main__":
 
         with column_2:
             if source_image_file is not None:
-                if st.sidebar.button(
-                    disabled=False,
-                    help="Run",
-                    key="run",
-                    label="Run",
-                ):
-                    if tracker == "No":
-                        resource = model(
-                            source=uploaded_image, conf=confidence, verbose=False
-                        )
-
-                    else:
-                        resource = model.track(
-                            source=uploaded_image,
-                            conf=confidence,
-                            persist=True,
-                            tracker=tracker,
-                            verbose=False,
-                        )
-
-                    boxes = resource[0].boxes
-                    plotted_resource = resource[0].plot(
-                        boxes=True,
-                        conf=True,
-                        font_size=None,  # Scaled to Image Size
-                        kpt_line=True,
-                        labels=True,
-                        line_width=None,  # Scaled to Image Size
-                        masks=True,
-                        probs=True,
-                        txt_color=plot_text_color_bgr,
-                    )[:, :, ::-1]
-
-                    st.image(
-                        caption="Plotted Image",
-                        image=plotted_resource,
-                        output_format="auto",
-                        width="stretch",
+                if tracker == "No":
+                    resource = model(
+                        source=uploaded_image, conf=confidence, verbose=False
                     )
 
-                    st.snow()
+                else:
+                    resource = model.track(
+                        source=uploaded_image,
+                        conf=confidence,
+                        persist=True,
+                        tracker=tracker,
+                        verbose=False,
+                    )
 
-                    try:
-                        with st.expander(label="Plots"):
-                            for box in boxes:
-                                st.write(box.data)
+                boxes = resource[0].boxes
+                plotted_resource = resource[0].plot(
+                    boxes=True,
+                    conf=True,
+                    font_size=None,  # Scaled to Image Size
+                    kpt_line=True,
+                    labels=True,
+                    line_width=None,  # Scaled to Image Size
+                    masks=True,
+                    probs=True,
+                    txt_color=plot_text_color_bgr,
+                )[:, :, ::-1]
 
-                    except Exception as exception:
-                        st.error(body=f"No image is uploaded yet: {exception}")
+                st.image(
+                    caption="Plotted Image",
+                    image=plotted_resource,
+                    output_format="auto",
+                    width="stretch",
+                )
+
+                st.balloons()
+
+                try:
+                    with st.expander(label="Plots"):
+                        for box in boxes:
+                            st.write(box.data)
+
+                except Exception as exception:
+                    st.error(body=f"No image is uploaded yet: {exception}")
 
     elif source_radio == SOURCE_VIDEO_FILE:
         source_video_file = st.sidebar.file_uploader(
@@ -404,7 +394,7 @@ if __name__ == "__main__":
             video_capture = cv2.VideoCapture(temporary_file.name)
 
             column_1, column_2 = st.columns(
-                border=False, spec=2, vertical_alignment="center"
+                border=False, spec=2, vertical_alignment="top"
             )
 
             with column_1:
@@ -416,34 +406,28 @@ if __name__ == "__main__":
                 )
 
             with column_2:
-                if st.sidebar.button(
-                    disabled=False,
-                    help="Run",
-                    key="run",
-                    label="Run",
-                ):
-                    try:
-                        st_frame = st.empty()
+                try:
+                    st_frame = st.empty()
 
-                        while video_capture.isOpened():
-                            success, image = video_capture.read()
+                    while video_capture.isOpened():
+                        success, image = video_capture.read()
 
-                            if success:
-                                display_plotted_frames(
-                                    streamlit_frame=st_frame,
-                                    source_frame=image,
-                                    width="stretch",
-                                )
+                        if success:
+                            display_plotted_frames(
+                                streamlit_frame=st_frame,
+                                source_frame=image,
+                                width="stretch",
+                            )
 
-                            else:
-                                video_capture.release()
-                                break
+                        else:
+                            video_capture.release()
+                            break
 
-                    except Exception as exception:
-                        st.error(label=f"Error loading video: {exception}")
+                except Exception as exception:
+                    st.error(label=f"Error loading video: {exception}")
 
-                    finally:
-                        temporary_file.close()
+                finally:
+                    temporary_file.close()
 
     elif source_radio == SOURCE_WEBCAM_STREAM:
         source_webcam = int(
