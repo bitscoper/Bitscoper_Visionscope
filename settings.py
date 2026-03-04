@@ -7,7 +7,6 @@ import sys
 from pathlib import Path
 
 file_path = Path(__file__).resolve()
-
 root_path = file_path.parent
 
 if root_path not in sys.path:
@@ -21,4 +20,4 @@ DEFAULT_WEBCAM_NUMBER = 0
 DEFAULT_VIDEO_WIDTH = 640
 DEFAULT_VIDEO_HEIGHT = 480
 
-DEFAULT_CONFIDENCE = 40
+DEFAULT_CONFIDENCE = 0.40

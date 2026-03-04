@@ -26,36 +26,41 @@ if __name__ == "__main__":
         POSE_DETECTION_MODEL,
     ]
 
-    NANO_WEIGHT = "Nano"
-    SMALL_WEIGHT = "Small"
-    MEDIUM_WEIGHT = "Medium"
-    LARGE_WEIGHT = "Large"
-    EXTRA_LARGE_WEIGHT = "Extra Large"
+    NANO_MODEL_WEIGHT = "Nano"
+    SMALL_MODEL_WEIGHT = "Small"
+    MEDIUM_MODEL_WEIGHT = "Medium"
+    LARGE_MODEL_WEIGHT = "Large"
+    EXTRA_LARGE_MODEL_WEIGHT = "Extra Large"
     MODEL_WEIGHTS = [
-        NANO_WEIGHT,
-        SMALL_WEIGHT,
-        MEDIUM_WEIGHT,
-        LARGE_WEIGHT,
-        EXTRA_LARGE_WEIGHT,
+        NANO_MODEL_WEIGHT,
+        SMALL_MODEL_WEIGHT,
+        MEDIUM_MODEL_WEIGHT,
+        LARGE_MODEL_WEIGHT,
+        EXTRA_LARGE_MODEL_WEIGHT,
     ]
 
-    IMAGE_FILE_SOURCE = "Image File"
-    VIDEO_FILE_SOURCE = "Video File"
-    WEBCAM_SOURCE = "Webcam"
-    RTSP_SOURCE = "RTSP"
-    SOURCES = [IMAGE_FILE_SOURCE, VIDEO_FILE_SOURCE, WEBCAM_SOURCE, RTSP_SOURCE]
+    SOURCE_IMAGE_FILE = "Image File"
+    SOURCE_VIDEO_FILE = "Video File"
+    SOURCE_WEBCAM_STREAM = "Webcam Stream"
+    SOURCE_RTSP_STREAM = "RTSP Stream"
+    SOURCES = [
+        SOURCE_IMAGE_FILE,
+        SOURCE_VIDEO_FILE,
+        SOURCE_WEBCAM_STREAM,
+        SOURCE_RTSP_STREAM,
+    ]
 
     IMAGE_FILE_EXTENSIONS = ["jpg", "jpeg", "png", "bmp", "webp"]
     VIDEO_FILE_EXTENSIONS = ["mp4"]
 
     ASPECT_RATIO_16_9 = "16:9"
     ASPECT_RATIO_4_3 = "4:3"
-    ASPECT_RATIO_CUSTOM = "Custom"
-    ASPECT_RATIOS = [ASPECT_RATIO_16_9, ASPECT_RATIO_4_3, ASPECT_RATIO_CUSTOM]
+    CUSTOM_ASPECT_RATIO = "Custom"
+    ASPECT_RATIOS = [ASPECT_RATIO_16_9, ASPECT_RATIO_4_3, CUSTOM_ASPECT_RATIO]
 
-    VIDEO_HEIGHTS = [144, 240, 360, 480, 720, 1080, 1440, 2160]
+    WEBCAM_STREAM_HEIGHTS = [144, 240, 360, 480, 720, 1080, 1440, 2160]
 
-    def select_video_size(width=None, height=None):
+    def select_webcam_stream_size(width=None, height=None):
         combined_widths = []
 
         for aspect_ratio in ASPECT_RATIOS:
@@ -65,23 +70,29 @@ if __name__ == "__main__":
             elif aspect_ratio == ASPECT_RATIO_4_3:
                 aspect_ratio = 4 / 3
 
-            elif aspect_ratio == ASPECT_RATIO_CUSTOM:
+            elif aspect_ratio == CUSTOM_ASPECT_RATIO:
                 continue
 
             else:
                 st.error(body="Failed to determine aspect ratio!")
 
-            for height in VIDEO_HEIGHTS:
+            for height in WEBCAM_STREAM_HEIGHTS:
                 width = int(height * aspect_ratio)
                 combined_widths.append(width)
 
-        minimum_height = min(VIDEO_HEIGHTS)
-        maximum_height = max(VIDEO_HEIGHTS)
+        minimum_height = min(WEBCAM_STREAM_HEIGHTS)
+        maximum_height = max(WEBCAM_STREAM_HEIGHTS)
         minimum_width = min(combined_widths)
         maximum_width = max(combined_widths)
 
         aspect_ratio = st.sidebar.radio(
-            label="Select Aspect Ratio", options=ASPECT_RATIOS, horizontal=True
+            disabled=False,
+            help="Select Webcam Stream Aspect Ratio",
+            horizontal=True,
+            key="webcam_stream_aspect_ratio",
+            label_visibility="visible",
+            label="Select Webcam Stream Aspect Ratio",
+            options=ASPECT_RATIOS,
         )
 
         if (aspect_ratio == ASPECT_RATIO_16_9) or (aspect_ratio == ASPECT_RATIO_4_3):
@@ -97,24 +108,36 @@ if __name__ == "__main__":
             widths = []
             resolutions = []
 
-            for height in VIDEO_HEIGHTS:
+            for height in WEBCAM_STREAM_HEIGHTS:
                 width = int(height * aspect_ratio)
                 widths.append(width)
                 resolutions.append(f"{height}p: {width} x {height}")
 
             resolution = st.sidebar.selectbox(
-                label="Select Resolution", options=resolutions
+                accept_new_options=False,
+                disabled=False,
+                help="Select Webcam Stream Resolution",
+                key="webcam_stream_resolution",
+                label_visibility="visible",
+                label="Select Webcam Stream Resolution",
+                options=resolutions,
+                placeholder="Select Webcam Stream Resolution",
             )
 
             width, height = map(int, resolution.split(":")[1].strip().split("x"))
 
-        elif aspect_ratio == ASPECT_RATIO_CUSTOM:
+        elif aspect_ratio == CUSTOM_ASPECT_RATIO:
             width = int(
                 st.sidebar.number_input(
-                    label="Set Video Width",
+                    disabled=False,
                     format="%d",
-                    min_value=minimum_width,
+                    help="Set Webcam Stream Width",
+                    key="webcam_stream_width",
+                    label_visibility="visible",
+                    label="Set Webcam Stream Width",
                     max_value=maximum_width,
+                    min_value=minimum_width,
+                    placeholder="Set Webcam Stream Width",
                     step=1,
                     value=settings.DEFAULT_VIDEO_WIDTH,
                 )
@@ -122,10 +145,15 @@ if __name__ == "__main__":
 
             height = int(
                 st.sidebar.number_input(
-                    label="Set Video Height",
+                    disabled=False,
                     format="%d",
-                    min_value=minimum_height,
+                    help="Set Webcam Stream Height",
+                    key="webcam_stream_height",
+                    label_visibility="visible",
+                    label="Set Webcam Stream Height",
                     max_value=maximum_height,
+                    min_value=minimum_height,
+                    placeholder="Set Webcam Stream Height",
                     step=1,
                     value=settings.DEFAULT_VIDEO_HEIGHT,
                 )
@@ -136,7 +164,7 @@ if __name__ == "__main__":
 
         return width, height
 
-    def display_result_frames(streamlit_frame, source_frame, width):
+    def display_plotted_frames(streamlit_frame, source_frame, width):
         if tracker == "No":
             model_output = model(source=source_frame, conf=confidence, verbose=False)
 
@@ -155,18 +183,18 @@ if __name__ == "__main__":
         plotted_frame = model_output[0].plot(
             boxes=True,
             conf=True,
-            font_size=None, # Scaled to Image Size
+            font_size=None,  # Scaled to Image Size
             kpt_line=True,
             labels=True,
-            line_width=None, # Scaled to Image Size
+            line_width=None,  # Scaled to Image Size
             masks=True,
             probs=True,
-            txt_color=plot_text_color_bgr
+            txt_color=plot_text_color_bgr,
         )
 
         streamlit_frame.image(
             image=plotted_frame,
-            caption="Result Video",
+            caption="Plotted Video",
             channels="BGR",
             width=width,
             output_format="auto",
@@ -179,36 +207,70 @@ if __name__ == "__main__":
         initial_sidebar_state="expanded",
     )
 
-    st.title(body=TITLE, anchor=False, text_alignment="center")
+    st.title(anchor=False, body=TITLE, text_alignment="center")
 
     st.sidebar.header(body="Model Settings")
 
-    model_type = st.sidebar.radio(label="Select Model", options=MODELS)
+    model_type = st.sidebar.radio(
+        disabled=False,
+        help="Select Model",
+        horizontal=False,
+        key="model",
+        label_visibility="visible",
+        label="Select Model",
+        options=MODELS,
+    )
 
-    model_weight = st.sidebar.selectbox(label="Select Model Weight", options=MODEL_WEIGHTS)
+    model_weight = st.sidebar.selectbox(
+        accept_new_options=False,
+        disabled=False,
+        help="Select Model Weight",
+        key="model_weight",
+        label_visibility="visible",
+        label="Select Model Weight",
+        options=MODEL_WEIGHTS,
+        placeholder="Select Model Weight",
+    )
 
-    confidence = (
-        float(
-            st.sidebar.slider(
-                label="Set Confidence",
-                min_value=1,
-                max_value=100,
-                step=1,
-                value=settings.DEFAULT_CONFIDENCE,
-            )
-        )
-        / 100
+    confidence = st.sidebar.slider(
+        disabled=False,
+        format="percent",
+        help="Set Confidence",
+        key="confidence",
+        label_visibility="visible",
+        label="Set Confidence",
+        max_value=1.0,
+        min_value=0.0,
+        step=0.01,
+        value=settings.DEFAULT_CONFIDENCE,
     )
 
     tracker = st.sidebar.selectbox(
-        label="Select Tracker", options=["bytetrack.yaml", "botsort.yaml", "No"]
+        accept_new_options=False,
+        disabled=False,
+        help="Select Tracker",
+        key="tracker",
+        label_visibility="visible",
+        label="Select Tracker",
+        options=["bytetrack.yaml", "botsort.yaml", "No"],
+        placeholder="Select Tracker",
     )
 
-    plot_text_color_hex = st.sidebar.color_picker(label="Pick Plot-Text Color")
+    plot_text_color_hex = st.sidebar.color_picker(
+        disabled=False,
+        help="Pick Plot-Text Color",
+        key="plot_text_color",
+        label_visibility="visible",
+        label="Pick Plot-Text Color",
+    )
     plot_text_color_red = int(plot_text_color_hex[1:3], 16)
     plot_text_color_green = int(plot_text_color_hex[3:5], 16)
     plot_text_color_blue = int(plot_text_color_hex[5:7], 16)
-    plot_text_color_bgr = (plot_text_color_blue, plot_text_color_green, plot_text_color_red)
+    plot_text_color_bgr = (
+        plot_text_color_blue,
+        plot_text_color_green,
+        plot_text_color_red,
+    )
 
     if model_type == OBJECT_DETECTION_MODEL:
         model_suffix = ""
@@ -229,19 +291,19 @@ if __name__ == "__main__":
     else:
         st.error(body="Failed to select model!")
 
-    if model_weight == NANO_WEIGHT:
+    if model_weight == NANO_MODEL_WEIGHT:
         model_weight_suffix = "n"
 
-    elif model_weight == SMALL_WEIGHT:
+    elif model_weight == SMALL_MODEL_WEIGHT:
         model_weight_suffix = "s"
 
-    elif model_weight == MEDIUM_WEIGHT:
+    elif model_weight == MEDIUM_MODEL_WEIGHT:
         model_weight_suffix = "m"
 
-    elif model_weight == LARGE_WEIGHT:
+    elif model_weight == LARGE_MODEL_WEIGHT:
         model_weight_suffix = "l"
 
-    elif model_weight == EXTRA_LARGE_WEIGHT:
+    elif model_weight == EXTRA_LARGE_MODEL_WEIGHT:
         model_weight_suffix = "x"
 
     else:
@@ -265,16 +327,30 @@ if __name__ == "__main__":
 
     st.sidebar.header(body="Input Settings")
 
-    source_radio = st.sidebar.radio(label="Select Source", options=SOURCES, horizontal=True)
+    source_radio = st.sidebar.radio(
+        disabled=False,
+        help="Select Source",
+        horizontal=True,
+        key="source",
+        label_visibility="visible",
+        label="Select Source",
+        options=SOURCES,
+    )
 
-    if source_radio == IMAGE_FILE_SOURCE:
+    if source_radio == SOURCE_IMAGE_FILE:
         source_image_file = st.sidebar.file_uploader(
-            label="Select an Image File",
-            type=IMAGE_FILE_EXTENSIONS,
             accept_multiple_files=False,
+            disabled=False,
+            help="Upload an Image File",
+            key="source_image_file",
+            label_visibility="visible",
+            label="Upload an Image File",
+            type=IMAGE_FILE_EXTENSIONS,
         )
 
-        column_1, column_2 = st.columns(2)
+        column_1, column_2 = st.columns(
+            border=False, spec=2, vertical_alignment="center"
+        )
 
         with column_1:
             try:
@@ -282,10 +358,10 @@ if __name__ == "__main__":
                     uploaded_image = PIL.Image.open(fp=source_image_file)
 
                     st.image(
-                        image=source_image_file,
                         caption="Uploaded Image",
-                        width="stretch",
+                        image=source_image_file,
                         output_format="auto",
+                        width="stretch",
                     )
 
             except Exception as exception:
@@ -293,7 +369,12 @@ if __name__ == "__main__":
 
         with column_2:
             if source_image_file is not None:
-                if st.sidebar.button(label="Run"):
+                if st.sidebar.button(
+                    disabled=False,
+                    help="Run",
+                    key="run",
+                    label="Run",
+                ):
                     if tracker == "No":
                         resource = model(
                             model=uploaded_image, conf=confidence, verbose=False
@@ -312,37 +393,41 @@ if __name__ == "__main__":
                     plotted_resource = resource[0].plot(
                         boxes=True,
                         conf=True,
-                        font_size=None, # Scaled to Image Size
+                        font_size=None,  # Scaled to Image Size
                         kpt_line=True,
                         labels=True,
-                        line_width=None, # Scaled to Image Size
+                        line_width=None,  # Scaled to Image Size
                         masks=True,
                         probs=True,
-                        txt_color=plot_text_color_bgr
+                        txt_color=plot_text_color_bgr,
                     )[:, :, ::-1]
 
                     st.image(
+                        caption="Plotted Image",
                         image=plotted_resource,
-                        caption="Result Image",
-                        width="stretch",
                         output_format="auto",
+                        width="stretch",
                     )
 
                     st.snow()
 
                     try:
-                        with st.expander(label="Results"):
+                        with st.expander(label="Plots"):
                             for box in boxes:
                                 st.write(box.data)
 
                     except Exception as exception:
                         st.error(body=f"No image is uploaded yet: {exception}")
 
-    elif source_radio == VIDEO_FILE_SOURCE:
+    elif source_radio == SOURCE_VIDEO_FILE:
         source_video_file = st.sidebar.file_uploader(
-            label="Select a Video File",
-            type=VIDEO_FILE_EXTENSIONS,
             accept_multiple_files=False,
+            disabled=False,
+            help="Upload a Video File",
+            key="source_video_file",
+            label_visibility="visible",
+            label="Upload a Video File",
+            type=VIDEO_FILE_EXTENSIONS,
         )
 
         if source_video_file is not None:
@@ -350,13 +435,25 @@ if __name__ == "__main__":
             temporary_file.write(source_video_file.read())
             video_capture = cv2.VideoCapture(temporary_file.name)
 
-            column_1, column_2 = st.columns(2)
+            column_1, column_2 = st.columns(
+                border=False, spec=2, vertical_alignment="center"
+            )
 
             with column_1:
-                st.video(data=source_video_file)
+                st.video(
+                    autoplay=False,
+                    data=source_video_file,
+                    loop=False,
+                    muted=False,
+                )
 
             with column_2:
-                if st.sidebar.button(label="Run"):
+                if st.sidebar.button(
+                    disabled=False,
+                    help="Run",
+                    key="run",
+                    label="Run",
+                ):
                     try:
                         st_frame = st.empty()
 
@@ -364,7 +461,7 @@ if __name__ == "__main__":
                             success, image = video_capture.read()
 
                             if success:
-                                display_result_frames(
+                                display_plotted_frames(
                                     streamlit_frame=st_frame,
                                     source_frame=image,
                                     width="stretch",
@@ -380,22 +477,37 @@ if __name__ == "__main__":
                     finally:
                         temporary_file.close()
 
-    elif source_radio == WEBCAM_SOURCE:
+    elif source_radio == SOURCE_WEBCAM_STREAM:
         source_webcam = int(
             st.sidebar.number_input(
-                label="Set Webcam Serial",
+                disabled=False,
                 format="%d",
+                help="Set Webcam Serial",
+                key="webcam_serial",
+                label_visibility="visible",
+                label="Set Webcam Serial",
                 min_value=0,
+                placeholder="Set Webcam Serial",
                 step=1,
                 value=settings.DEFAULT_WEBCAM_NUMBER,
             )
         )
 
-        source_width, source_height = select_video_size()
+        source_width, source_height = select_webcam_stream_size()
 
-        if st.sidebar.button(label="Run"):
+        if st.sidebar.button(
+            disabled=False,
+            help="Run",
+            key="run",
+            label="Run",
+        ):
             try:
-                stop_button = st.sidebar.button(label="Stop", key="stop")
+                stop_button = st.sidebar.button(
+                    disabled=False,
+                    help="Stop",
+                    key="stop",
+                    label="Stop",
+                )
 
                 video_capture = cv2.VideoCapture(source_webcam)
                 video_capture.set(propId=3, value=source_width)
@@ -411,7 +523,7 @@ if __name__ == "__main__":
                         break
 
                     if success:
-                        display_result_frames(
+                        display_plotted_frames(
                             streamlit_frame=st_frame,
                             source_frame=image,
                             width="content",
@@ -426,14 +538,29 @@ if __name__ == "__main__":
             except Exception as exception:
                 st.error(body=f"Error loading webcam stream: {exception}")
 
-    elif source_radio == RTSP_SOURCE:
+    elif source_radio == SOURCE_RTSP_STREAM:
         source_rtsp = st.sidebar.text_input(
-            label="Set RTSP Stream URL", placeholder="Write a RTSP Stream URL"
+            disabled=False,
+            help="Write a RTSP Stream URL",
+            key="rtsp_stream_url",
+            label_visibility="visible",
+            label="Set RTSP Stream URL",
+            placeholder="Write a RTSP Stream URL",
         )
 
-        if st.sidebar.button(label="Run"):
+        if st.sidebar.button(
+            disabled=False,
+            help="Run",
+            key="run",
+            label="Run",
+        ):
             try:
-                stop_button = st.sidebar.button("Stop", key="stop")
+                stop_button = st.sidebar.button(
+                    disabled=False,
+                    help="Stop",
+                    key="stop",
+                    label="Stop",
+                )
 
                 video_capture = cv2.VideoCapture(source_rtsp)
 
@@ -447,7 +574,7 @@ if __name__ == "__main__":
                         break
 
                     if success:
-                        display_result_frames(
+                        display_plotted_frames(
                             streamlit_frame=st_frame,
                             source_frame=image,
                             width="content",
