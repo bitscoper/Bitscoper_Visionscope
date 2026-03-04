@@ -201,10 +201,10 @@ if __name__ == "__main__":
         )
 
     st.set_page_config(
-        page_title=TITLE,
-        page_icon=ICON,
-        layout="wide",
         initial_sidebar_state="expanded",
+        layout="wide",
+        page_icon=ICON,
+        page_title=TITLE,
     )
 
     st.title(anchor=False, body=TITLE, text_alignment="center")
@@ -272,53 +272,38 @@ if __name__ == "__main__":
         plot_text_color_red,
     )
 
-    if model_type == OBJECT_DETECTION_MODEL:
-        model_suffix = ""
-        task = "detect"
+    MODEL_SUFFIXES = {
+        OBJECT_DETECTION_MODEL: "",
+        OBB_OBJECT_DETECTION_MODEL: "-obb",
+        OBJECT_SEGMENTATION_MODEL: "-segment",
+        POSE_DETECTION_MODEL: "-pose",
+    }
 
-    elif model_type == OBB_OBJECT_DETECTION_MODEL:
-        model_suffix = "-obb"
-        task = "obb"
+    MODEL_TASKS = {
+        OBJECT_DETECTION_MODEL: "detect",
+        OBB_OBJECT_DETECTION_MODEL: "obb",
+        OBJECT_SEGMENTATION_MODEL: "segment",
+        POSE_DETECTION_MODEL: "pose",
+    }
 
-    elif model_type == OBJECT_SEGMENTATION_MODEL:
-        model_suffix = "-seg"
-        task = "segment"
-
-    elif model_type == POSE_DETECTION_MODEL:
-        model_suffix = "-pose"
-        task = "pose"
-
-    else:
-        st.error(body="Failed to select model!")
-
-    if model_weight == NANO_MODEL_WEIGHT:
-        model_weight_suffix = "n"
-
-    elif model_weight == SMALL_MODEL_WEIGHT:
-        model_weight_suffix = "s"
-
-    elif model_weight == MEDIUM_MODEL_WEIGHT:
-        model_weight_suffix = "m"
-
-    elif model_weight == LARGE_MODEL_WEIGHT:
-        model_weight_suffix = "l"
-
-    elif model_weight == EXTRA_LARGE_MODEL_WEIGHT:
-        model_weight_suffix = "x"
-
-    else:
-        st.error(body="Failed to select weight!")
+    MODEL_WEIGHT_SUFFIXES = {
+        NANO_MODEL_WEIGHT: "n",
+        SMALL_MODEL_WEIGHT: "s",
+        MEDIUM_MODEL_WEIGHT: "m",
+        LARGE_MODEL_WEIGHT: "l",
+        EXTRA_LARGE_MODEL_WEIGHT: "x",
+    }
 
     model_path = (
         str(settings.MODEL_DIRECTORY)
         + "/yolo26"
-        + model_weight_suffix
-        + model_suffix
+        + MODEL_WEIGHT_SUFFIXES.get(model_weight)
+        + MODEL_SUFFIXES.get(model_type)
         + ".pt"
     )
 
     try:
-        model = YOLO(model=model_path, task=task, verbose=False)
+        model = YOLO(model=model_path, task=MODEL_TASKS.get(model_type), verbose=False)
 
     except Exception as exception:
         st.error(
@@ -358,7 +343,7 @@ if __name__ == "__main__":
                     uploaded_image = PIL.Image.open(fp=source_image_file)
 
                     st.image(
-                        caption="Uploaded Image",
+                        caption="Source Image",
                         image=source_image_file,
                         output_format="auto",
                         width="stretch",
@@ -377,7 +362,7 @@ if __name__ == "__main__":
                 ):
                     if tracker == "No":
                         resource = model(
-                            model=uploaded_image, conf=confidence, verbose=False
+                            source=uploaded_image, conf=confidence, verbose=False
                         )
 
                     else:
