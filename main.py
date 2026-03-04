@@ -39,6 +39,28 @@ if __name__ == "__main__":
         EXTRA_LARGE_MODEL_WEIGHT,
     ]
 
+    MODEL_SUFFIXES = {
+        OBJECT_DETECTION_MODEL: "",
+        OBB_OBJECT_DETECTION_MODEL: "-obb",
+        OBJECT_SEGMENTATION_MODEL: "-segment",
+        POSE_DETECTION_MODEL: "-pose",
+    }
+
+    MODEL_TASKS = {
+        OBJECT_DETECTION_MODEL: "detect",
+        OBB_OBJECT_DETECTION_MODEL: "obb",
+        OBJECT_SEGMENTATION_MODEL: "segment",
+        POSE_DETECTION_MODEL: "pose",
+    }
+
+    MODEL_WEIGHT_SUFFIXES = {
+        NANO_MODEL_WEIGHT: "n",
+        SMALL_MODEL_WEIGHT: "s",
+        MEDIUM_MODEL_WEIGHT: "m",
+        LARGE_MODEL_WEIGHT: "l",
+        EXTRA_LARGE_MODEL_WEIGHT: "x",
+    }
+
     SOURCE_IMAGE_FILE = "Image File"
     SOURCE_VIDEO_FILE = "Video File"
     SOURCE_WEBCAM_STREAM = "Webcam Stream"
@@ -60,109 +82,92 @@ if __name__ == "__main__":
 
     WEBCAM_STREAM_HEIGHTS = [144, 240, 360, 480, 720, 1080, 1440, 2160]
 
-    def select_webcam_stream_size(width=None, height=None):
-        combined_widths = []
-
-        for aspect_ratio in ASPECT_RATIOS:
-            if aspect_ratio == ASPECT_RATIO_16_9:
-                aspect_ratio = 16 / 9
-
-            elif aspect_ratio == ASPECT_RATIO_4_3:
-                aspect_ratio = 4 / 3
-
-            elif aspect_ratio == CUSTOM_ASPECT_RATIO:
-                continue
-
-            else:
-                st.error(body="Failed to determine aspect ratio!")
-
-            for height in WEBCAM_STREAM_HEIGHTS:
-                width = int(height * aspect_ratio)
-                combined_widths.append(width)
-
-        minimum_height = min(WEBCAM_STREAM_HEIGHTS)
-        maximum_height = max(WEBCAM_STREAM_HEIGHTS)
-        minimum_width = min(combined_widths)
-        maximum_width = max(combined_widths)
-
-        aspect_ratio = st.sidebar.radio(
-            disabled=False,
-            help="Select Webcam Stream Aspect Ratio",
-            horizontal=True,
-            key="webcam_stream_aspect_ratio",
-            label_visibility="visible",
+    def select_webcam_stream_size():
+        selected_aspect_ratio = st.sidebar.radio(
             label="Select Webcam Stream Aspect Ratio",
             options=ASPECT_RATIOS,
+            key="webcam_stream_aspect_ratio",
+            horizontal=True,
+            help="Select Webcam Stream Aspect Ratio",
         )
 
-        if (aspect_ratio == ASPECT_RATIO_16_9) or (aspect_ratio == ASPECT_RATIO_4_3):
-            if aspect_ratio == ASPECT_RATIO_16_9:
-                aspect_ratio = 16 / 9
+        if selected_aspect_ratio in (ASPECT_RATIO_16_9, ASPECT_RATIO_4_3):
+            resolutions = []
+            resolution_map = {}
 
-            elif aspect_ratio == ASPECT_RATIO_4_3:
+            if selected_aspect_ratio == ASPECT_RATIO_16_9:
+                aspect_ratio = 16 / 9
+            else:
                 aspect_ratio = 4 / 3
 
-            else:
-                st.error(body="Failed to determine aspect ratio!")
+            for predefined_height in WEBCAM_STREAM_HEIGHTS:
+                calculated_width = int(predefined_height * aspect_ratio)
+                resolution = (
+                    f"{predefined_height}p: {calculated_width} x {predefined_height}"
+                )
+                resolutions.append(resolution)
+                resolution_map[resolution] = (calculated_width, predefined_height)
 
-            widths = []
-            resolutions = []
-
-            for height in WEBCAM_STREAM_HEIGHTS:
-                width = int(height * aspect_ratio)
-                widths.append(width)
-                resolutions.append(f"{height}p: {width} x {height}")
-
-            resolution = st.sidebar.selectbox(
-                accept_new_options=False,
-                disabled=False,
-                help="Select Webcam Stream Resolution",
-                key="webcam_stream_resolution",
-                label_visibility="visible",
+            selected_resolution = st.sidebar.selectbox(
                 label="Select Webcam Stream Resolution",
                 options=resolutions,
-                placeholder="Select Webcam Stream Resolution",
+                key="webcam_stream_resolution",
+                help="Select Webcam Stream Resolution",
             )
 
-            width, height = map(int, resolution.split(":")[1].strip().split("x"))
+            selected_width, selected_height = resolution_map[selected_resolution]
 
-        elif aspect_ratio == CUSTOM_ASPECT_RATIO:
-            width = int(
+        elif selected_aspect_ratio == CUSTOM_ASPECT_RATIO:
+            calculated_widths = []
+
+            for aspect_ratio_option in ASPECT_RATIOS:
+                if aspect_ratio_option == ASPECT_RATIO_16_9:
+                    aspect_ratio = 16 / 9
+
+                elif aspect_ratio_option == ASPECT_RATIO_4_3:
+                    aspect_ratio = 4 / 3
+
+                else:
+                    continue
+
+                for predefined_height in WEBCAM_STREAM_HEIGHTS:
+                    calculated_width = int(predefined_height * aspect_ratio)
+                    calculated_widths.append(calculated_width)
+
+            minimum_height = min(WEBCAM_STREAM_HEIGHTS)
+            maximum_height = max(WEBCAM_STREAM_HEIGHTS)
+            minimum_width = min(calculated_widths)
+            maximum_width = max(calculated_widths)
+
+            selected_width = int(
                 st.sidebar.number_input(
-                    disabled=False,
-                    format="%d",
-                    help="Set Webcam Stream Width",
-                    key="webcam_stream_width",
-                    label_visibility="visible",
                     label="Set Webcam Stream Width",
-                    max_value=maximum_width,
                     min_value=minimum_width,
-                    placeholder="Set Webcam Stream Width",
-                    step=1,
+                    max_value=maximum_width,
                     value=settings.DEFAULT_VIDEO_WIDTH,
+                    step=1,
+                    key="webcam_stream_width",
+                    help="Set Webcam Stream Width",
                 )
             )
 
-            height = int(
+            selected_height = int(
                 st.sidebar.number_input(
-                    disabled=False,
-                    format="%d",
-                    help="Set Webcam Stream Height",
-                    key="webcam_stream_height",
-                    label_visibility="visible",
                     label="Set Webcam Stream Height",
-                    max_value=maximum_height,
                     min_value=minimum_height,
-                    placeholder="Set Webcam Stream Height",
-                    step=1,
+                    max_value=maximum_height,
                     value=settings.DEFAULT_VIDEO_HEIGHT,
+                    step=1,
+                    key="webcam_stream_height",
+                    help="Set Webcam Stream Height",
                 )
             )
 
         else:
+            selected_width, selected_height = None, None
             st.error(body="Failed to select aspect ratio!")
 
-        return width, height
+        return selected_width, selected_height
 
     def display_plotted_frames(streamlit_frame, source_frame, width):
         if tracker == "No":
@@ -271,28 +276,6 @@ if __name__ == "__main__":
         plot_text_color_green,
         plot_text_color_red,
     )
-
-    MODEL_SUFFIXES = {
-        OBJECT_DETECTION_MODEL: "",
-        OBB_OBJECT_DETECTION_MODEL: "-obb",
-        OBJECT_SEGMENTATION_MODEL: "-segment",
-        POSE_DETECTION_MODEL: "-pose",
-    }
-
-    MODEL_TASKS = {
-        OBJECT_DETECTION_MODEL: "detect",
-        OBB_OBJECT_DETECTION_MODEL: "obb",
-        OBJECT_SEGMENTATION_MODEL: "segment",
-        POSE_DETECTION_MODEL: "pose",
-    }
-
-    MODEL_WEIGHT_SUFFIXES = {
-        NANO_MODEL_WEIGHT: "n",
-        SMALL_MODEL_WEIGHT: "s",
-        MEDIUM_MODEL_WEIGHT: "m",
-        LARGE_MODEL_WEIGHT: "l",
-        EXTRA_LARGE_MODEL_WEIGHT: "x",
-    }
 
     model_path = (
         str(settings.MODEL_DIRECTORY)
@@ -495,8 +478,8 @@ if __name__ == "__main__":
                 )
 
                 video_capture = cv2.VideoCapture(source_webcam)
-                video_capture.set(propId=3, value=source_width)
-                video_capture.set(propId=4, value=source_height)
+                video_capture.set(cv2.CAP_PROP_FRAME_WIDTH, source_width)
+                video_capture.set(cv2.CAP_PROP_FRAME_HEIGHT, source_height)
 
                 st_frame = st.empty()
 
