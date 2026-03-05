@@ -3,12 +3,14 @@
 
 # By Abdullah As-Sadeed
 
+import tempfile
+
 from pathlib import Path
 from PIL import Image
 from ultralytics import YOLO
 import cv2
+import numpy as np
 import streamlit as st
-import tempfile
 
 import settings
 
@@ -89,6 +91,7 @@ if __name__ == "__main__":
     WEBCAM_STREAM_HEIGHTS = [144, 240, 360, 480, 720, 1080, 1440, 2160]
 
     def select_webcam_stream_size() -> tuple[int, int]:
+        """Selects Webcam Stream Size"""
         selected_aspect_ratio = st.sidebar.radio(
             label="Select Webcam Stream Aspect Ratio",
             options=ASPECT_RATIOS,
@@ -123,7 +126,7 @@ if __name__ == "__main__":
 
             selected_width, selected_height = resolution_map[selected_resolution]
 
-        elif selected_aspect_ratio == CUSTOM_ASPECT_RATIO:
+        else:
             calculated_widths = []
 
             for aspect_ratio_option in ASPECT_RATIOS:
@@ -169,13 +172,10 @@ if __name__ == "__main__":
                 )
             )
 
-        else:
-            selected_width, selected_height = None, None
-            st.error(body="Failed to select aspect ratio!")
-
         return selected_width, selected_height
 
     def display_plotted_frames(streamlit_frame, source_frame, width) -> None:
+        """Displays Plotted Frames"""
         if tracker == NO_TRACKER:
             model_output = model(source=source_frame, conf=confidence, verbose=False)
 
@@ -190,6 +190,7 @@ if __name__ == "__main__":
 
         else:
             st.error(body="Failed to determine tracker!")
+            return
 
         plotted_frame = model_output[0].plot(
             boxes=True,
@@ -324,8 +325,6 @@ if __name__ == "__main__":
         with column_1:
             try:
                 if source_image_file is not None:
-                    uploaded_image = Image.open(fp=source_image_file)
-
                     st.image(
                         caption="Source Image",
                         image=source_image_file,
@@ -338,6 +337,8 @@ if __name__ == "__main__":
 
         with column_2:
             if source_image_file is not None:
+                uploaded_image = Image.open(source_image_file)
+
                 if tracker == NO_TRACKER:
                     resource = model(
                         source=uploaded_image, conf=confidence, verbose=False
@@ -345,7 +346,7 @@ if __name__ == "__main__":
 
                 else:
                     resource = model.track(
-                        source=uploaded_image,
+                        source=np.array(uploaded_image)[:, :, ::-1],
                         conf=confidence,
                         persist=True,
                         tracker=tracker,
@@ -430,7 +431,7 @@ if __name__ == "__main__":
                             break
 
                 except Exception as exception:
-                    st.error(label=f"Error loading video: {exception}")
+                    st.error(body=f"Error loading video: {exception}")
 
                 finally:
                     temporary_file.close()
