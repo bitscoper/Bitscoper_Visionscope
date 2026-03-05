@@ -62,6 +62,11 @@ if __name__ == "__main__":
         EXTRA_LARGE_MODEL_WEIGHT: "x",
     }
 
+    BYTETRACK_TRACKER = "bytetrack.yaml"
+    BOTSORT_TRACKER = "botsort.yaml"
+    NO_TRACKER = "No"
+    TRACKERS = [BYTETRACK_TRACKER, BOTSORT_TRACKER, NO_TRACKER]
+
     SOURCE_IMAGE_FILE = "Image File"
     SOURCE_VIDEO_FILE = "Video File"
     SOURCE_WEBCAM_STREAM = "Webcam Stream"
@@ -83,7 +88,7 @@ if __name__ == "__main__":
 
     WEBCAM_STREAM_HEIGHTS = [144, 240, 360, 480, 720, 1080, 1440, 2160]
 
-    def select_webcam_stream_size():
+    def select_webcam_stream_size() -> tuple[int, int]:
         selected_aspect_ratio = st.sidebar.radio(
             label="Select Webcam Stream Aspect Ratio",
             options=ASPECT_RATIOS,
@@ -170,11 +175,11 @@ if __name__ == "__main__":
 
         return selected_width, selected_height
 
-    def display_plotted_frames(streamlit_frame, source_frame, width):
-        if tracker == "No":
+    def display_plotted_frames(streamlit_frame, source_frame, width) -> None:
+        if tracker == NO_TRACKER:
             model_output = model(source=source_frame, conf=confidence, verbose=False)
 
-        elif tracker in ("bytetrack.yaml", "botsort.yaml"):
+        elif tracker in (BYTETRACK_TRACKER, BOTSORT_TRACKER):
             model_output = model.track(
                 source=source_frame,
                 conf=confidence,
@@ -258,7 +263,7 @@ if __name__ == "__main__":
         key="tracker",
         label_visibility="visible",
         label="Select Tracker",
-        options=["bytetrack.yaml", "botsort.yaml", "No"],
+        options=TRACKERS,
         placeholder="Select Tracker",
     )
 
@@ -333,7 +338,7 @@ if __name__ == "__main__":
 
         with column_2:
             if source_image_file is not None:
-                if tracker == "No":
+                if tracker == NO_TRACKER:
                     resource = model(
                         source=uploaded_image, conf=confidence, verbose=False
                     )
@@ -347,7 +352,6 @@ if __name__ == "__main__":
                         verbose=False,
                     )
 
-                boxes = resource[0].boxes
                 plotted_resource = resource[0].plot(
                     boxes=True,
                     conf=True,
@@ -371,6 +375,8 @@ if __name__ == "__main__":
 
                 try:
                     with st.expander(label="Plots"):
+                        boxes = resource[0].boxes
+
                         for box in boxes:
                             st.write(box.data)
 
