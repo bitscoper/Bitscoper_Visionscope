@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-
-# By Abdullah As-Sadeed
-
-import tempfile
+"""By Abdullah As-Sadeed"""
 
 from pathlib import Path
+import sys
+import tempfile
+
 from PIL import Image
 from ultralytics import YOLO
 import cv2
@@ -19,7 +19,9 @@ if __name__ == "__main__":
     ICON = "🔬"
 
     OBJECT_DETECTION_MODEL = "Object Detection"
-    OBB_OBJECT_DETECTION_MODEL = "Oriented Bounding Boxes (OBB) Object Detection"
+    OBB_OBJECT_DETECTION_MODEL = (
+        "Oriented Bounding Boxes (OBB) Object Detection"
+    )
     OBJECT_SEGMENTATION_MODEL = "Object Segmentation"
     POSE_DETECTION_MODEL = "Pose Detection"
     MODELS = [
@@ -109,13 +111,11 @@ if __name__ == "__main__":
             else:
                 aspect_ratio = 4 / 3
 
-            for predefined_height in WEBCAM_STREAM_HEIGHTS:
-                calculated_width = int(predefined_height * aspect_ratio)
-                resolution = (
-                    f"{predefined_height}p: {calculated_width} x {predefined_height}"
-                )
+            for height in WEBCAM_STREAM_HEIGHTS:
+                width = int(height * aspect_ratio)
+                resolution = f"{height}p: {width} x {height}"
                 resolutions.append(resolution)
-                resolution_map[resolution] = (calculated_width, predefined_height)
+                resolution_map[resolution] = (width, height)
 
             selected_resolution = st.sidebar.selectbox(
                 label="Select Webcam Stream Resolution",
@@ -124,10 +124,12 @@ if __name__ == "__main__":
                 help="Select Webcam Stream Resolution",
             )
 
-            selected_width, selected_height = resolution_map[selected_resolution]
+            selected_width, selected_height = resolution_map[
+                selected_resolution
+            ]
 
         else:
-            calculated_widths = []
+            widths = []
 
             for aspect_ratio_option in ASPECT_RATIOS:
                 if aspect_ratio_option == ASPECT_RATIO_16_9:
@@ -139,14 +141,14 @@ if __name__ == "__main__":
                 else:
                     continue
 
-                for predefined_height in WEBCAM_STREAM_HEIGHTS:
-                    calculated_width = int(predefined_height * aspect_ratio)
-                    calculated_widths.append(calculated_width)
+                for height in WEBCAM_STREAM_HEIGHTS:
+                    width = int(height * aspect_ratio)
+                    widths.append(width)
 
             minimum_height = min(WEBCAM_STREAM_HEIGHTS)
             maximum_height = max(WEBCAM_STREAM_HEIGHTS)
-            minimum_width = min(calculated_widths)
-            maximum_width = max(calculated_widths)
+            minimum_width = min(widths)
+            maximum_width = max(widths)
 
             selected_width = int(
                 st.sidebar.number_input(
@@ -177,7 +179,9 @@ if __name__ == "__main__":
     def display_plotted_frames(streamlit_frame, source_frame, width) -> None:
         """Displays Plotted Frames"""
         if tracker == NO_TRACKER:
-            model_output = model(source=source_frame, conf=confidence, verbose=False)
+            model_output = model(
+                source=source_frame, conf=confidence, verbose=False
+            )
 
         elif tracker in (BYTETRACK_TRACKER, BOTSORT_TRACKER):
             model_output = model.track(
@@ -284,18 +288,24 @@ if __name__ == "__main__":
         plot_text_color_red,
     )
 
+    root_path = Path(__file__).resolve().parent
+
+    if root_path not in sys.path:
+        sys.path.append(str(root_path))
+
     model_path = (
-        Path(settings.MODEL_DIRECTORY) / f"yolo26{MODEL_WEIGHT_SUFFIXES[model_weight]}"
+        Path(root_path.relative_to(Path.cwd()) / settings.MODEL_DIRECTORY)
+        / f"yolo26{MODEL_WEIGHT_SUFFIXES[model_weight]}"
         f"{MODEL_SUFFIXES[model_type]}.pt"
     )
 
     try:
-        model = YOLO(model=model_path, task=MODEL_TASKS.get(model_type), verbose=False)
+        model = YOLO(
+            model=model_path, task=MODEL_TASKS.get(model_type), verbose=False
+        )
 
     except Exception as exception:
-        st.error(
-            body=f"Failed to load model!\nCheck the path: {model_path}: {exception}"
-        )
+        st.error(body=f"Failed to load model from {model_path}: {exception}")
 
     st.sidebar.header(body="Input Settings")
 
@@ -320,7 +330,9 @@ if __name__ == "__main__":
             type=IMAGE_FILE_EXTENSIONS,
         )
 
-        column_1, column_2 = st.columns(border=False, spec=2, vertical_alignment="top")
+        column_1, column_2 = st.columns(
+            border=False, spec=2, vertical_alignment="top"
+        )
 
         with column_1:
             try:
@@ -333,7 +345,9 @@ if __name__ == "__main__":
                     )
 
             except Exception as exception:
-                st.error(body=f"Error occurred while opening the image: {exception}")
+                st.error(
+                    body=f"Error occurred while opening the image: {exception}"
+                )
 
         with column_2:
             if source_image_file is not None:
@@ -417,6 +431,8 @@ if __name__ == "__main__":
                     st_frame = st.empty()
 
                     while video_capture.isOpened():
+                        success: bool
+                        image: np.ndarray
                         success, image = video_capture.read()
 
                         if success:
