@@ -390,10 +390,18 @@ if __name__ == "__main__":
 
                 try:
                     with st.expander(label="Plots"):
-                        boxes = resource[0].boxes
+                        result = resource[0]
 
-                        for box in boxes:
-                            st.write(box.data)
+                        if result.boxes is not None:
+                            for box in result.boxes:
+                                st.write(box.data)
+
+                        elif hasattr(result, "obb") and result.obb is not None:
+                            for obb in result.obb:
+                                st.write(obb.data)
+
+                        else:
+                            st.warning("No detections found!")
 
                 except Exception as exception:
                     st.error(body=f"No image is uploaded yet: {exception}")
