@@ -4,11 +4,19 @@
 
 Object Detection, Oriented Bounding Boxes (OBB) Object Detection, Object Segmentation, and Pose Detection from Image Files, Video Files, Webcams, and RTSP Streams Using Ultralytics YOLO26 in Streamlit
 
-<br />
-
-![Demo Result](demo_files/images/default_result.jpg)
-
 </div>
+
+## Screenshots
+
+![Object Detection](demo/screenshots/Object_Detection.png)
+
+---
+
+![Object Segmentation](demo/screenshots/Object_Segmentation.png)
+
+---
+
+![Pose Detection](demo/screenshots/Pose_Detection.png)
 
 ## Usage
 
@@ -25,5 +33,5 @@ python3.12 -m streamlit run main.py
 If you encounter the error `Original error was: libstdc++.so.6: cannot open shared object file: No such file or directory` on NixOS, try running:
 
 ```sh
-NIXPKGS_ALLOW_UNFREE=1 nix-shell -p steam-run --run "steam-run python3.12 -m streamlit run main.py"
+nix-shell -p steam-run-free --run "steam-run python3.12 -m streamlit run main.py"
 ```
