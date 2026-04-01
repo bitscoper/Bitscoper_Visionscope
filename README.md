@@ -8,13 +8,25 @@ Object Detection, Oriented Bounding Boxes (OBB) Object Detection, Object Segment
 
 ## Screenshots
 
+### Object Detection
+
 ![Object Detection](demo/screenshots/Object_Detection.png)
 
 ---
 
+### Oriented Bounding Boxes (OBB) Object Detection
+
+![Oriented Bounding Boxes (OBB) Object Detection](demo/screenshots/OBB_Object_Detection.png)
+
+---
+
+### Object Segmentation
+
 ![Object Segmentation](demo/screenshots/Object_Segmentation.png)
 
 ---
+
+### Pose Detection
 
 ![Pose Detection](demo/screenshots/Pose_Detection.png)
 
