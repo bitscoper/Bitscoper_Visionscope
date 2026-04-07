@@ -1,6 +1,6 @@
 <div align="center">
 
-# Bitscoper Visionoscope
+# Bitscoper Visionscope
 
 Object Detection, Oriented Bounding Boxes (OBB) Object Detection, Object Segmentation, and Pose Detection from Image Files, Video Files, Webcams, and RTSP Streams Using Ultralytics YOLO26 in Streamlit
 
