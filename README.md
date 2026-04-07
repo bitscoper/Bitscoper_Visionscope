@@ -47,3 +47,8 @@ If you encounter the error `Original error was: libstdc++.so.6: cannot open shar
 ```sh
 nix-shell -p steam-run-free --run "steam-run python3.12 -m streamlit run main.py"
 ```
+
+## Notes
+
+- I write commit messages in Title Case and past tense, leaving out articles to keep them concise while still showing details.
+- I reuploaded the repository to clean up the commit history, but this is unlikely to happen again.
