@@ -4,6 +4,8 @@
 
 Object Detection, Oriented Bounding Boxes (OBB) Object Detection, Object Segmentation, and Pose Detection from Image Files, Video Files, Webcams, and RTSP Streams Using Ultralytics YOLO26 in Streamlit
 
+[![No AI](https://raw.githubusercontent.com/nuxy/no-ai-badge/master/badge.svg)](https://github.com/bitscoper/Bitscoper_Visionscope#notes)
+
 </div>
 
 ## Screenshots
@@ -52,3 +54,4 @@ nix-shell -p steam-run-free --run "steam-run python3.12 -m streamlit run main.py
 
 - I write commit messages in Title Case and past tense, leaving out articles to keep them concise while still showing details.
 - I reuploaded the repository to clean up the commit history, but this is unlikely to happen again.
+- I later PGP-signed all my commits, so they show a later date.
