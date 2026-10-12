@@ -19,9 +19,7 @@ if __name__ == "__main__":
     ICON = "🔬"
 
     OBJECT_DETECTION_MODEL = "Object Detection"
-    OBB_OBJECT_DETECTION_MODEL = (
-        "Oriented Bounding Boxes (OBB) Object Detection"
-    )
+    OBB_OBJECT_DETECTION_MODEL = "Oriented Bounding Boxes (OBB) Object Detection"
     OBJECT_SEGMENTATION_MODEL = "Object Segmentation"
     POSE_DETECTION_MODEL = "Pose Detection"
     MODELS = [
@@ -124,9 +122,7 @@ if __name__ == "__main__":
                 help="Select Webcam Stream Resolution",
             )
 
-            selected_width, selected_height = resolution_map[
-                selected_resolution
-            ]
+            selected_width, selected_height = resolution_map[selected_resolution]
 
         else:
             widths = []
@@ -179,9 +175,7 @@ if __name__ == "__main__":
     def display_plotted_frames(streamlit_frame, source_frame, width) -> None:
         """Displays Plotted Frames"""
         if tracker == NO_TRACKER:
-            model_output = model(
-                source=source_frame, conf=confidence, verbose=False
-            )
+            model_output = model(source=source_frame, conf=confidence, verbose=False)
 
         elif tracker in (BYTETRACK_TRACKER, BOTSORT_TRACKER):
             model_output = model.track(
@@ -300,9 +294,7 @@ if __name__ == "__main__":
     )
 
     try:
-        model = YOLO(
-            model=model_path, task=MODEL_TASKS.get(model_type), verbose=False
-        )
+        model = YOLO(model=model_path, task=MODEL_TASKS.get(model_type), verbose=False)
 
     except Exception as exception:
         st.error(body=f"Failed to load model from {model_path}: {exception}")
@@ -330,9 +322,7 @@ if __name__ == "__main__":
             type=IMAGE_FILE_EXTENSIONS,
         )
 
-        column_1, column_2 = st.columns(
-            border=False, spec=2, vertical_alignment="top"
-        )
+        column_1, column_2 = st.columns(border=False, spec=2, vertical_alignment="top")
 
         with column_1:
             try:
@@ -345,9 +335,7 @@ if __name__ == "__main__":
                     )
 
             except Exception as exception:
-                st.error(
-                    body=f"Error occurred while opening the image: {exception}"
-                )
+                st.error(body=f"Error occurred while opening the image: {exception}")
 
         with column_2:
             if source_image_file is not None:
